@@ -1,14 +1,12 @@
 import argparse
 from getpass import getpass
 
-from app.api.schemas import RegisterInput
-from app.application.auth import AuthService
+from pydantic import ValidationError
+
+from app.application.commands.register_user import RegisterUserCommand
+from app.bootstrap.container import ApplicationContainer
 from app.config import get_settings
-from app.domain.entities import Role
-from app.domain.errors import DomainError
-from app.infrastructure.database import SqlUnitOfWork, build_engine, session_factory
-from app.infrastructure.repositories import SqlAuthRepository
-from app.infrastructure.security import ArgonPasswordHasher
+from app.domain.errors.base import DomainError
 
 
 def main() -> None:
@@ -20,19 +18,20 @@ def main() -> None:
     password = getpass("Password (12+ characters): ")
     if password != getpass("Confirm password: "):
         raise SystemExit("Passwords do not match")
-    data = RegisterInput(name=name, email=email, password=password)
-    engine = build_engine(get_settings().database_url)
     try:
-        with session_factory(engine)() as session:
-            service = AuthService(
-                SqlAuthRepository(session), ArgonPasswordHasher(), SqlUnitOfWork(session)
-            )
-            user = service.register(data.name, str(data.email), data.password, role=Role.ADMIN)
+        command = RegisterUserCommand(name=name, email=email, password=password)
+    except ValidationError:
+        # ValidationError includes input values; never print a password from its repr.
+        raise SystemExit("Enter a valid name, email and a password of 12-128 characters.") from None
+    container = ApplicationContainer(get_settings())
+    try:
+        with container.scope() as services:
+            user = services.auth.create_admin(command)
             print(f"Administrator created: {user.email}")
     except DomainError as exc:
         raise SystemExit(exc.message) from exc
     finally:
-        engine.dispose()
+        container.close()
 
 
 if __name__ == "__main__":

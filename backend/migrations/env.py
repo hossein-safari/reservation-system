@@ -3,10 +3,12 @@ from logging.config import fileConfig
 from alembic import context
 
 from app.config import get_settings
-from app.infrastructure.database import build_engine
-from app.infrastructure.models import metadata
+from app.infrastructure.persistence.engine import build_engine
+from app.infrastructure.persistence.metadata import metadata
+from app.infrastructure.persistence.models import configure_mappings
 
 config = context.config
+configure_mappings()
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
