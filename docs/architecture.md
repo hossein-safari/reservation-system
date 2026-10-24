@@ -2,6 +2,14 @@
 
 بک‌اند یک monolith لایه‌ای است. هر موجودیت، مدل persistence و Repository فایل جدا دارد؛ سرویس‌ها، کنترلرها و schemaها بر اساس حوزه تفکیک شده‌اند.
 
+## کلاس‌دیاگرام
+
+کلاس‌ها در دو نمای مرتبط مستند شده‌اند: [موجودیت‌ها و رفتارهای دامنه](diagrams/domain-classes.svg) ([PlantUML](diagrams/domain-classes.puml)) و [سرویس‌ها، قراردادها و آداپتورها](diagrams/application-classes.svg) ([PlantUML](diagrams/application-classes.puml)). توضیح نمادها، محدودهٔ هر نما و دستور بازسازی در [راهنمای دیاگرام‌ها](diagrams/README.md) آمده است.
+
+![کلاس‌های دامنه](diagrams/domain-classes.svg)
+
+![سرویس‌ها، قراردادها و آداپتورها](diagrams/application-classes.svg)
+
 ## ساختار
 
 ```text

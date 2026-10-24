@@ -1,13 +1,8 @@
 # مدل داده
 
-```mermaid
-erDiagram
-    USER ||--o{ RESERVATION : owns
-    RESOURCE ||--o{ SLOT : schedules
-    SLOT ||--o{ RESERVATION : history
-    RESERVATION ||--o| PAYMENT : has
-    PAYMENT ||--o| TRANSACTION : records
-```
+[اسکریپت PlantUML ساختار دیتابیس](diagrams/database.puml) شامل تمام ستون‌ها، نوع داده، کلیدها، روابط و محدودیت‌های schema فعلی است. [راهنمای تولید خروجی](diagrams/README.md#تولید-و-بررسی-خروجی) روش بازسازی SVG را توضیح می‌دهد.
+
+![ساختار دیتابیس](diagrams/database.svg)
 
 | جدول | فیلدهای کلیدی و محدودیت |
 | --- | --- |
