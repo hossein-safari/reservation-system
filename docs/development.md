@@ -10,7 +10,8 @@ WSL Ubuntu، Python 3.12+ با `python3-venv`، Node 24 LTS و Docker Compose v2
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -r requirements-dev.lock
+pip install -e . --no-deps
 alembic upgrade head
 python -m app.cli create-admin
 uvicorn app.main:app --reload
@@ -40,6 +41,7 @@ cd frontend
 npm ci
 npm run dev
 npm run lint
+npm run format:check
 npm test
 npm run build
 ```
@@ -49,6 +51,8 @@ npm run build
 ## Docker
 
 `.env.example` را به `.env` کپی و کلیدها را اختصاصی کنید. سرویس‌های `db`، `api` و `web` شامل healthcheck هستند. api پس از سلامت db، migration را اجرا می‌کند. web روی 8080 و api فقط روی localhost:8000 publish می‌شوند. PostgreSQL به host منتشر نمی‌شود. هر دو برنامه بدون root اجرا می‌شوند.
+
+اگر پورت‌ها اشغال‌اند، `WEB_PORT` و `API_PORT` را در `.env` تغییر دهید؛ برای Vite می‌توانید `npm run dev -- --port 15173` اجرا کنید. رمز PostgreSQL در URL اتصال استفاده می‌شود؛ مقدار hex یا alphanumeric انتخاب کنید تا به URL encoding نیاز نداشته باشد.
 
 ```bash
 docker compose up --build -d

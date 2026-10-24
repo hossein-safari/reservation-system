@@ -4,6 +4,8 @@
 
 امکانات پیاده‌شده: ثبت‌نام و ورود، نقش مدیر/مشتری، مدیریت فضای قابل رزرو و سانس، رزرو انحصاری، لغو رزرو پرداخت‌نشده، پرداخت آزمایشی تکرارپذیر بدون ثبت مجدد، تاریخچه تراکنش و رابط فارسی راست‌به‌چپ. درگاه بانکی واقعی، استرداد وجه و انقضای خودکار رزرو در این نسخه وجود ندارند.
 
+![نمای رابط با دادهٔ آزمایشی](docs/assets/overview.png)
+
 ## اجرای سریع با Docker در WSL
 
 ```bash
@@ -26,7 +28,8 @@ Python 3.12+، Node 24 LTS و npm لازم است. مراحل کامل، اجر�
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -r requirements-dev.lock
+pip install -e . --no-deps
 alembic upgrade head
 python -m app.cli create-admin
 uvicorn app.main:app --reload
