@@ -49,7 +49,7 @@ Vite درخواست‌های `/api` را به پورت 8000 می‌فرستد. �
 
 - [نیازمندی‌ها، محدوده و تفسیر تصویر](docs/requirements.md)
 - [معماری MVC، SOLID و مرز لایه‌ها](docs/architecture.md)
-- [سیستم بصری دفتر قرار و قواعد توسعهٔ استایل](docs/design-system.md)
+- [سیستم بصری مینیمال و قواعد توسعهٔ استایل](docs/design-system.md)
 - [مدل داده و چرخه رزرو/پرداخت](docs/data-model.md)
 - [قرارداد API و مثال‌ها](docs/api.md)
 - [توسعه، تست و استقرار](docs/development.md)
