@@ -54,6 +54,7 @@ Vite درخواست‌های `/api` را به پورت 8000 می‌فرستد. �
 - [توسعه، تست و استقرار](docs/development.md)
 - [امنیت و محدودیت‌های عملیاتی](docs/security.md)
 - [تصمیم‌های معماری](docs/adr/0001-layered-monolith.md)
+- [گزارش بررسی و تست نسخه پایه](docs/verification.md)
 - [مشارکت و استاندارد کدنویسی](CONTRIBUTING.md)
 
 مجوز پروژه: [MIT](LICENSE).
