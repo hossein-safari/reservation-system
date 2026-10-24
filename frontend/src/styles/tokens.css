@@ -1,0 +1,25 @@
+:root {
+  --paper: #f3efe5;
+  --paper-light: #fbf8f0;
+  --paper-deep: #e8e0ce;
+  --ink: #292720;
+  --ink-soft: #71695d;
+  --accent: #a33f2b;
+  --accent-wash: #f0ded4;
+  --success: #3d594b;
+  --success-wash: #e4e9df;
+  --rule: #c8bfad;
+  --focus: #2456a4;
+  --font-body: "Vazirmatn", Tahoma, sans-serif;
+  --font-display: "Noto Naskh Arabic", "Times New Roman", serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --page-gutter: clamp(20px, 4vw, 64px);
+  --page-width: 1440px;
+}

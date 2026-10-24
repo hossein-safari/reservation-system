@@ -4,19 +4,49 @@ import type { Tab } from "./application/useReservationApp";
 import { AdminPanel } from "./ui/AdminPanel";
 import { AuthDialog } from "./ui/AuthDialog";
 import { SlotList, ReservationList, TransactionList } from "./ui/BookingViews";
+import { PaymentDialog } from "./ui/PaymentDialog";
+import { Arrow, Refresh } from "./ui/Icons";
+import { number } from "./ui/format";
 import "./styles.css";
 
-const tabs: { id: Tab; label: string; symbol: string }[] = [
-  { id: "slots", label: "سانس‌های آزاد", symbol: "◫" },
-  { id: "reservations", label: "رزروهای من", symbol: "▤" },
-  { id: "transactions", label: "تراکنش‌ها", symbol: "⇄" },
-  { id: "admin", label: "مدیریت", symbol: "⚙" },
+const chapters: {
+  id: Tab;
+  label: string;
+  description: string;
+  note: string;
+}[] = [
+  {
+    id: "slots",
+    label: "سانس‌های آزاد",
+    description: "هر قرار خوب، از یک وقت مناسب شروع می‌شود.",
+    note: "فضا و زمان دلخواهتان را پیدا کنید. با ثبت رزرو، آن وقت برای شما کنار گذاشته می‌شود.",
+  },
+  {
+    id: "reservations",
+    label: "رزروهای من",
+    description: "وقت‌هایی که برای خودتان کنار گذاشته‌اید.",
+    note: "جزئیات قرارها را ببینید، رزرو را نهایی کنید یا وقت پرداخت‌نشده را آزاد کنید.",
+  },
+  {
+    id: "transactions",
+    label: "تراکنش‌ها",
+    description: "حساب روشنِ قرارهای شما.",
+    note: "رسید پرداخت‌های تأییدشده با مبلغ و شمارهٔ پیگیری در این دفتر نگهداری می‌شود.",
+  },
+  {
+    id: "admin",
+    label: "مدیریت",
+    description: "یک فضا تعریف کنید؛ برایش وقت بگذارید.",
+    note: "ابتدا فضای قابل رزرو را ثبت کنید، سپس بازه‌های زمانی و هزینهٔ هر سانس را مشخص کنید.",
+  },
 ];
 
 export default function App() {
   const app = useReservationApp();
   const [authOpen, setAuthOpen] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const chapterIndex = chapters.findIndex((chapter) => chapter.id === app.tab);
+  const chapter = chapters[chapterIndex];
   const names = new Map(
     app.resources.map((resource) => [resource.id, resource.name]),
   );
@@ -26,7 +56,12 @@ export default function App() {
       : app.tab === "reservations"
         ? app.reservations.length
         : app.transactions.length;
-  const title = tabs.find((tab) => tab.id === app.tab)?.label;
+  const today = new Intl.DateTimeFormat("fa-IR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Tehran",
+  }).format(new Date());
 
   function navigate(tab: Tab) {
     setPaymentId(null);
@@ -38,127 +73,104 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <a className="brand" href="/" aria-label="قرار، صفحه اصلی">
-          <span className="brand-mark">ق</span>
-          <span>
-            قرار<small>سامانه رزرو سانس</small>
-          </span>
-        </a>
-        <div className="nav-label">فضای کار شما</div>
-        <nav aria-label="منوی اصلی">
-          {tabs
-            .filter(
-              (tab) => tab.id !== "admin" || app.session?.user.role === "admin",
-            )
-            .map((tab) => (
-              <button
-                key={tab.id}
-                className={`nav-item ${app.tab === tab.id ? "active" : ""}`}
-                onClick={() => navigate(tab.id)}
-              >
-                <span aria-hidden="true">{tab.symbol}</span>
-                {tab.label}
-              </button>
-            ))}
-        </nav>
-        <div className="sidebar-note">
-          <span className="live-dot" />
-          برنامه‌ریزی ساده‌تر
-          <p>زمان مناسب را پیدا کنید و با خیال راحت رزرو کنید.</p>
+    <div className="paper-app">
+      <a className="skip-link" href="#main-content">
+        رفتن به محتوای اصلی
+      </a>
+      <header className="masthead page-width">
+        <div className="edition-line">
+          <span>دفتر رزرو فضا و زمان</span>
+          <time>{today}</time>
         </div>
-        <div className="sidebar-footer">قرار؛ برای وقت‌های ارزشمند شما</div>
-      </aside>
-      <div className="workspace">
-        <header className="topbar">
-          <div>
-            <span className="muted">فضای کار</span>
-            <span className="breadcrumb"> / {title}</span>
-          </div>
+        <div className="masthead-main">
+          <a className="wordmark" href="/" aria-label="قرار، صفحه اصلی">
+            قرار<span aria-hidden="true">.</span>
+          </a>
+          <p className="masthead-caption">
+            برای هر قرار،
+            <br />
+            <strong>یک جای مشخص.</strong>
+          </p>
           <div className="account">
             {app.session ? (
               <>
-                <span className="avatar">
-                  {app.session.user.name.slice(0, 1)}
-                </span>
-                <span>{app.session.user.name}</span>
+                <div className="account-name">
+                  <span className="meta-label">حساب شما</span>
+                  <span>{app.session.user.name}</span>
+                </div>
                 <button
-                  className="text-button"
+                  className="button button--text"
                   disabled={app.busy}
                   onClick={app.logout}
                 >
                   خروج
+                  <Arrow />
                 </button>
               </>
             ) : (
-              <button className="outline" onClick={() => setAuthOpen(true)}>
+              <button
+                className="button button--outline"
+                onClick={() => setAuthOpen(true)}
+              >
                 ورود / ثبت‌نام
+                <Arrow />
               </button>
             )}
           </div>
-        </header>
-        <main id="main-content">
-          <div className="page-heading">
-            <div>
-              <span className="eyebrow">هر برنامه‌ای، یک قرار</span>
-              <h1>{title}</h1>
-              <p className="muted">
-                {app.tab === "slots"
-                  ? "فضای دلخواه و زمان مناسب خود را انتخاب کنید."
-                  : "وضعیت قرارها و پرداخت‌های خود را اینجا دنبال کنید."}
-              </p>
-            </div>
-            <button
-              className="outline"
-              disabled={app.loading || app.busy}
-              onClick={app.refresh}
-            >
-              ↻ تازه‌سازی
-            </button>
+        </div>
+        <nav className="chapter-nav" aria-label="منوی اصلی">
+          {chapters
+            .filter(
+              (item) =>
+                item.id !== "admin" || app.session?.user.role === "admin",
+            )
+            .map((item, index) => (
+              <button
+                key={item.id}
+                className={`chapter-link ${app.tab === item.id ? "is-current" : ""}`}
+                aria-current={app.tab === item.id ? "page" : undefined}
+                onClick={() => navigate(item.id)}
+              >
+                <span className="chapter-link-number" aria-hidden="true">
+                  {number(index + 1, 2)}
+                </span>
+                {item.label}
+                <Arrow />
+              </button>
+            ))}
+        </nav>
+      </header>
+
+      <main id="main-content" className="page-width book-layout" tabIndex={-1}>
+        <section className="chapter-intro" aria-labelledby="page-title">
+          <div className="chapter-index">
+            <span>بخش</span>
+            <span>{number(chapterIndex + 1, 2)}</span>
           </div>
-          {app.tab === "slots" && (
-            <section className="intro-card">
-              <div>
-                <span className="pill">یک قدم تا قرار بعدی</span>
-                <h2>
-                  زمانتان را به بهترین شکل
-                  <br />
-                  برنامه‌ریزی کنید.
-                </h2>
-                <p>سانس را انتخاب کنید، رزرو کنید و آماده باشید.</p>
-              </div>
-              <div className="calendar-art" aria-hidden="true">
-                <div className="calendar-top" />
-                <div className="calendar-grid">
-                  {Array.from({ length: 12 }, (_, index) => (
-                    <span
-                      key={index}
-                      className={index === 6 ? "selected-day" : ""}
-                    >
-                      {index + 12}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-          {app.error && !authOpen && (
-            <p role="alert" className="message error">
-              {app.error}
-            </p>
-          )}
-          {app.notice && (
-            <p role="status" className="message success">
-              {app.notice}
-            </p>
-          )}
-          {app.tab === "slots" && (
-            <div className="list-toolbar">
-              <h2>زمان‌های در دسترس</h2>
-              <label className="filter-label">
-                فضا
+          <h1 id="page-title">{chapter.label}</h1>
+          <p className="chapter-description">{chapter.description}</p>
+          <div className="chapter-note">
+            <span className="small-cross" aria-hidden="true">
+              +
+            </span>
+            <p>{chapter.note}</p>
+          </div>
+          <div className="time-zone-note">
+            <span className="meta-label">مبنای زمان</span>
+            <span>
+              تهران <span dir="ltr">UTC +03:30</span>
+            </span>
+          </div>
+        </section>
+        <div className="chapter-content">
+          <div className="content-toolbar">
+            <div>
+              <span className="meta-label">
+                {app.tab === "slots" ? "انتخاب فضا" : "دفتر شخصی شما"}
+              </span>
+              {app.tab === "slots" ? (
                 <select
+                  className="resource-select"
                   aria-label="فضا"
                   value={app.resourceId}
                   onChange={(event) => app.filterResource(event.target.value)}
@@ -170,12 +182,39 @@ export default function App() {
                     </option>
                   ))}
                 </select>
-              </label>
+              ) : (
+                <p className="toolbar-title">
+                  {app.tab === "admin" ? "فضاها و سانس‌ها" : "فهرست ثبت‌شده‌ها"}
+                </p>
+              )}
             </div>
+            <button
+              className="button button--text refresh-button"
+              disabled={app.loading || app.busy}
+              onClick={app.refresh}
+            >
+              <Refresh />
+              تازه‌سازی
+            </button>
+          </div>
+          {app.error && !authOpen && (
+            <p role="alert" className="message message--error">
+              {app.error}
+            </p>
+          )}
+          {app.notice && (
+            <p role="status" className="message message--success">
+              {app.notice}
+            </p>
           )}
           {app.loading ? (
-            <div className="empty" role="status">
-              در حال دریافت اطلاعات…
+            <div className="loading-state" role="status">
+              <span>در حال دریافت اطلاعات…</span>
+              <div aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </div>
             </div>
           ) : (
             <>
@@ -212,34 +251,41 @@ export default function App() {
                 />
               )}
               {app.tab !== "admin" && (
-                <div className="pagination">
+                <div className="pagination" aria-label="صفحه‌بندی">
                   <button
-                    className="outline"
-                    disabled={app.page === 0}
+                    className="button button--text"
+                    disabled={app.page === 0 || app.busy}
                     onClick={() => app.setPage((value) => value - 1)}
                   >
+                    <Arrow direction="right" />
                     صفحه قبل
                   </button>
-                  <span>
-                    صفحه {new Intl.NumberFormat("fa-IR").format(app.page + 1)}
+                  <span className="page-number">
+                    <span className="meta-label">صفحه</span>
+                    {number(app.page + 1, 2)}
                   </span>
                   <button
-                    className="outline"
-                    disabled={count < 20}
+                    className="button button--text"
+                    disabled={count < 20 || app.busy}
                     onClick={() => app.setPage((value) => value + 1)}
                   >
                     صفحه بعد
+                    <Arrow />
                   </button>
                 </div>
               )}
             </>
           )}
-          <footer className="page-footer">
-            <span>همه ساعت‌ها به وقت تهران • مبلغ‌ها به ریال</span>
-            <span>نسخه توسعه / پرداخت آزمایشی</span>
-          </footer>
-        </main>
-      </div>
+        </div>
+      </main>
+      <footer className="colophon page-width">
+        <span className="colophon-brand">قرار.</span>
+        <p>وقت برای شما. جای آن با ما.</p>
+        <div>
+          <span>مبلغ‌ها به ریال</span>
+          <span>نسخهٔ توسعه · پرداخت آزمایشی</span>
+        </div>
+      </footer>
       {authOpen && (
         <AuthDialog
           busy={app.busy}
@@ -249,34 +295,17 @@ export default function App() {
         />
       )}
       {paymentId && (
-        <div
-          className="payment-confirm"
-          role="region"
-          aria-label="تأیید پرداخت آزمایشی"
-        >
-          <strong>درگاه آزمایشی</strong>
-          <p>
-            این عملیات فقط گردش پرداخت را شبیه‌سازی می‌کند و وجهی منتقل نمی‌شود.
-          </p>
-          <div className="row-actions">
-            <button
-              className="primary"
-              disabled={app.busy}
-              onClick={async () => {
-                if (await app.pay(paymentId)) setPaymentId(null);
-              }}
-            >
-              تأیید آزمایشی
-            </button>
-            <button
-              className="outline"
-              disabled={app.busy}
-              onClick={() => setPaymentId(null)}
-            >
-              بستن
-            </button>
-          </div>
-        </div>
+        <PaymentDialog
+          reservation={app.reservations.find(
+            (reservation) => reservation.id === paymentId,
+          )}
+          busy={app.busy}
+          error={app.error}
+          onClose={() => setPaymentId(null)}
+          onConfirm={async () => {
+            if (await app.pay(paymentId)) setPaymentId(null);
+          }}
+        />
       )}
     </div>
   );

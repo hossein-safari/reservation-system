@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Credentials } from "../domain/models";
+import { Dialog } from "./Dialog";
+import { Arrow } from "./Icons";
 
 interface Props {
   busy: boolean;
@@ -8,16 +10,8 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: Credentials, register: boolean) => Promise<boolean>;
 }
-
 export function AuthDialog({ busy, error, onClose, onSubmit }: Props) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const [register, setRegister] = useState(false);
-  useEffect(() => {
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, []);
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -28,34 +22,26 @@ export function AuthDialog({ busy, error, onClose, onSubmit }: Props) {
     if (register) credentials.name = String(data.get("name"));
     if (await onSubmit(credentials, register)) onClose();
   }
-
   return (
-    <dialog
-      ref={dialog}
-      className="auth-dialog"
-      aria-labelledby="auth-title"
-      onCancel={(event) => {
-        if (busy) event.preventDefault();
-        else onClose();
-      }}
-    >
-      <div className="dialog-heading">
-        <h2 id="auth-title">{register ? "ساخت حساب جدید" : "خوش برگشتید"}</h2>
-        <button
-          className="icon-button"
-          disabled={busy}
-          onClick={onClose}
-          aria-label="بستن"
-        >
-          ×
-        </button>
-      </div>
-      <p className="muted">برای مدیریت رزروها وارد حساب خود شوید.</p>
-      <form onSubmit={submit}>
+    <Dialog titleId="auth-title" busy={busy} onClose={onClose}>
+      <span className="dialog-kicker">قرار / حساب شخصی</span>
+      <h2 id="auth-title">{register ? "حساب جدید." : "ورود به دفتر."}</h2>
+      <p className="dialog-description">
+        {register
+          ? "حساب بسازید و وقت قرار بعدی‌تان را انتخاب کنید."
+          : "برای دیدن و مدیریت قرارها، وارد حساب خود شوید."}
+      </p>
+      <form className="paper-form" onSubmit={submit}>
         {register && (
           <label>
             نام و نام خانوادگی
-            <input name="name" required maxLength={120} autoComplete="name" />
+            <input
+              name="name"
+              required
+              maxLength={120}
+              autoComplete="name"
+              autoFocus
+            />
           </label>
         )}
         <label>
@@ -67,6 +53,8 @@ export function AuthDialog({ busy, error, onClose, onSubmit }: Props) {
             required
             autoComplete="email"
             maxLength={254}
+            placeholder="you@example.com"
+            autoFocus={!register}
           />
         </label>
         <label>
@@ -81,23 +69,26 @@ export function AuthDialog({ busy, error, onClose, onSubmit }: Props) {
             autoComplete={register ? "new-password" : "current-password"}
           />
         </label>
-        {register && <small className="muted">حداقل ۱۲ نویسه</small>}
+        {register && <small className="field-hint">حداقل ۱۲ نویسه</small>}
         {error && (
-          <p role="alert" className="error">
+          <p role="alert" className="message message--error">
             {error}
           </p>
         )}
-        <button className="primary full" disabled={busy}>
+        <button className="button button--solid button--full" disabled={busy}>
           {busy ? "در حال انجام…" : register ? "ثبت‌نام" : "ورود"}
+          <Arrow />
         </button>
       </form>
-      <button
-        className="text-button"
-        disabled={busy}
-        onClick={() => setRegister((value) => !value)}
-      >
-        {register ? "حساب دارید؟ وارد شوید" : "حساب ندارید؟ ثبت‌نام کنید"}
-      </button>
-    </dialog>
+      <div className="dialog-footnote">
+        <button
+          className="button button--text"
+          disabled={busy}
+          onClick={() => setRegister((value) => !value)}
+        >
+          {register ? "حساب دارید؟ وارد شوید" : "حساب ندارید؟ ثبت‌نام کنید"}
+        </button>
+      </div>
+    </Dialog>
   );
 }

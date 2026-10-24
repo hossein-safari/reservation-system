@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 import type { NewSlot, Resource } from "../domain/models";
+import { Arrow } from "./Icons";
 
 interface Props {
   resources: Resource[];
@@ -40,11 +41,16 @@ export function AdminPanel({
     if (success) form.reset();
   }
   return (
-    <div className="admin-grid">
-      <section className="panel">
-        <h2>فضای جدید</h2>
-        <p className="muted">سالن، اتاق یا هر فضای قابل رزرو</p>
-        <form onSubmit={resourceSubmit}>
+    <div className="admin-forms">
+      <section className="form-section">
+        <header className="form-section-heading">
+          <span>۰۱</span>
+          <div>
+            <h2>فضای جدید</h2>
+            <p>سالن، اتاق یا هر فضای قابل رزرو</p>
+          </div>
+        </header>
+        <form className="paper-form" onSubmit={resourceSubmit}>
           <label>
             نام فضا
             <input name="name" required maxLength={120} />
@@ -53,15 +59,20 @@ export function AdminPanel({
             توضیحات
             <textarea name="description" rows={3} maxLength={2000} />
           </label>
-          <button className="primary" disabled={busy}>
-            ایجاد فضا
+          <button className="button button--solid" disabled={busy}>
+            ایجاد فضا <Arrow />
           </button>
         </form>
       </section>
-      <section className="panel">
-        <h2>سانس جدید</h2>
-        <p className="muted">تاریخ میلادی؛ ساعت به وقت تهران</p>
-        <form onSubmit={slotSubmit}>
+      <section className="form-section">
+        <header className="form-section-heading">
+          <span>۰۲</span>
+          <div>
+            <h2>سانس جدید</h2>
+            <p>تاریخ میلادی؛ ساعت به وقت تهران</p>
+          </div>
+        </header>
+        <form className="paper-form" onSubmit={slotSubmit}>
           <label>
             فضا
             <select
@@ -99,8 +110,11 @@ export function AdminPanel({
               required
             />
           </label>
-          <button className="primary" disabled={busy || !resources.length}>
-            ایجاد سانس
+          <button
+            className="button button--solid"
+            disabled={busy || !resources.length}
+          >
+            ایجاد سانس <Arrow />
           </button>
         </form>
       </section>

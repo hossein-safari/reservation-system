@@ -1,0 +1,328 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    color 140ms,
+    background-color 140ms,
+    border-color 140ms;
+}
+.button--outline,
+.button--reserve {
+  border-color: var(--ink);
+}
+.button--outline:hover:not(:disabled),
+.button--reserve:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper-light);
+}
+.button--solid {
+  background: var(--ink);
+  color: var(--paper-light);
+  border-color: var(--ink);
+}
+.button--solid:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.button--text {
+  padding-inline: 0;
+  gap: 12px;
+}
+.button--text:hover:not(:disabled) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.button--reserve {
+  font-size: 11px;
+  padding-inline: 12px;
+  gap: 12px;
+}
+.button--reserve .icon {
+  width: 17px;
+  height: 17px;
+}
+.button--full {
+  width: 100%;
+  justify-content: space-between;
+}
+.refresh-button {
+  font-size: 10px;
+}
+.resource-select {
+  display: block;
+  width: min(320px, 100%);
+  max-width: 100%;
+  min-height: 42px;
+  padding: 2px 0;
+  margin-block-start: 3px;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 25px;
+  cursor: pointer;
+}
+.message {
+  border-inline-start: 3px solid currentColor;
+  padding: 14px 18px;
+  margin-block: 0 24px;
+  font-size: 12px;
+  line-height: 2;
+}
+.message--error {
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+.message--success {
+  background: var(--success-wash);
+  color: var(--success);
+}
+.admin-forms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.form-section + .form-section {
+  border-inline-start: 1px solid var(--rule);
+  padding-inline-start: 32px;
+}
+.form-section-heading {
+  display: flex;
+  align-items: start;
+  gap: 16px;
+  margin-block-end: 30px;
+}
+.form-section-heading > span {
+  color: var(--accent);
+  font-size: 25px;
+  line-height: 1.8;
+}
+.form-section-heading h2 {
+  font-family: var(--font-display);
+  font-size: 29px;
+  line-height: 1.7;
+}
+.form-section-heading p {
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+.paper-form {
+  display: grid;
+  gap: 22px;
+}
+.paper-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.paper-form input,
+.paper-form select,
+.paper-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  border: 1px solid var(--rule);
+  border-block-end-color: var(--ink);
+  padding: 10px 12px;
+  background: var(--paper-light);
+  font-size: 14px;
+}
+.paper-form textarea {
+  resize: vertical;
+  min-height: 105px;
+}
+.paper-form input:focus,
+.paper-form select:focus,
+.paper-form textarea:focus {
+  border-color: var(--ink);
+}
+.paper-form .button {
+  justify-content: space-between;
+  margin-block-start: 8px;
+}
+.paper-form .message {
+  margin: 0;
+}
+.field-hint {
+  color: var(--ink-soft);
+  font-size: 10px;
+  margin-block-start: -14px;
+}
+.paper-dialog {
+  width: 530px;
+  max-width: calc(100% - 40px);
+  max-height: calc(100dvh - 40px);
+  padding: 44px 48px 28px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-inline-start: 7px solid var(--accent);
+  overflow-y: auto;
+}
+.paper-dialog::backdrop {
+  background: rgb(41 39 32 / 65%);
+}
+.dialog-close {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: 28px;
+  font-weight: 300;
+}
+.dialog-close:hover:not(:disabled) {
+  color: var(--accent);
+}
+.dialog-kicker {
+  display: block;
+  margin-block: 4px 22px;
+  color: var(--accent);
+  font-size: 10px;
+}
+.paper-dialog h2 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1.6;
+  font-weight: 600;
+}
+.dialog-description {
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 2.1;
+  margin-block: 12px 30px;
+}
+.dialog-footnote {
+  border-block-start: 1px solid var(--rule);
+  padding-block-start: 16px;
+  margin-block-start: 24px;
+}
+.dialog-footnote .button {
+  font-size: 11px;
+}
+.payment-summary {
+  border-block: 1px solid var(--rule);
+  padding-block: 20px;
+  display: grid;
+  gap: 8px;
+  margin-block: 24px;
+}
+.payment-summary > strong {
+  font-size: 26px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.payment-summary > span:last-child {
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+.payment-notice {
+  padding-inline-start: 16px;
+  border-inline-start: 2px solid var(--accent);
+  margin-block: 24px;
+}
+.payment-notice > strong {
+  font-size: 12px;
+  color: var(--accent);
+}
+.payment-notice p {
+  font-size: 12px;
+  margin-block-start: 6px;
+}
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-block-start: 30px;
+}
+@media (max-width: 1100px) and (min-width: 901px) {
+  .admin-forms {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .form-section + .form-section {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--rule);
+    padding-inline-start: 0;
+    padding-block-start: 30px;
+  }
+}
+@media (max-width: 600px) {
+  .button {
+    font-size: 11px;
+    padding-inline: 14px;
+    gap: 12px;
+  }
+  .button--text {
+    padding-inline: 0;
+  }
+  .button--reserve {
+    font-size: 10px;
+    padding-inline: 9px;
+    gap: 8px;
+  }
+  .button--reserve .icon {
+    width: 14px;
+  }
+  .refresh-button {
+    font-size: 10px;
+    gap: 7px;
+  }
+  .message {
+    font-size: 11px;
+    padding: 12px;
+  }
+  .resource-select {
+    font-size: 23px;
+    width: 195px;
+  }
+  .account .button {
+    font-size: 10px;
+    padding-inline: 12px;
+  }
+  .account .button--text {
+    padding-inline: 0;
+  }
+  .admin-forms {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .form-section + .form-section {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--rule);
+    padding-inline-start: 0;
+    padding-block-start: 30px;
+  }
+  .form-section-heading {
+    margin-block-end: 24px;
+  }
+  .paper-dialog {
+    max-width: calc(100% - 28px);
+    max-height: calc(100dvh - 28px);
+    padding: 42px 24px 20px;
+  }
+  .paper-dialog h2 {
+    font-size: 30px;
+  }
+  .dialog-description {
+    font-size: 11px;
+  }
+  .payment-summary > strong {
+    font-size: 23px;
+  }
+}

@@ -4,8 +4,7 @@ import App from "./App";
 import "@fontsource/vazirmatn/400.css";
 import "@fontsource/vazirmatn/500.css";
 import "@fontsource/vazirmatn/600.css";
-import "@fontsource/vazirmatn/700.css";
-import "@fontsource/vazirmatn/800.css";
+import "@fontsource/noto-naskh-arabic/600.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
