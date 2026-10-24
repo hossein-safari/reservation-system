@@ -1,0 +1,128 @@
+@startuml
+!pragma layout smetana
+title Reservation System — Domain classes
+top to bottom direction
+hide circle
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam defaultFontName SansSerif
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam classBackgroundColor #FAFAF9
+skinparam classBorderColor #57534E
+skinparam ArrowColor #57534E
+skinparam noteBackgroundColor #FFFDF5
+skinparam noteBorderColor #A8A29E
+
+' Source: backend/app/domain/entities/*.py
+class User <<dataclass>> {
+  +id: UUID
+  +name: str
+  +email: str
+  +password_hash: str
+  +role: Role = CUSTOMER
+  --
+  +require_admin(): None
+}
+
+enum Role {
+  CUSTOMER = "customer"
+  ADMIN = "admin"
+}
+
+class Resource <<dataclass>> {
+  +id: UUID
+  +name: str
+  +description: str = ""
+}
+
+class Slot <<dataclass>> {
+  +id: UUID
+  +resource_id: UUID
+  +starts_at: datetime
+  +ends_at: datetime
+  +price_irr: int
+  --
+  +ensure_future(now: datetime): None
+  +ensure_bookable(now: datetime): None
+}
+
+class Reservation <<dataclass>> {
+  +id: UUID
+  +user_id: UUID
+  +slot_id: UUID
+  +amount_irr: int
+  +status: ReservationStatus = PENDING
+  +created_at: datetime
+  +slot: Slot | None = None
+  --
+  +place(user_id: UUID, slot: Slot, now: datetime): Reservation <<classmethod>>
+  +ensure_payable(now: datetime): None
+  +cancel(): None
+  +confirm(now: datetime): None
+}
+
+enum ReservationStatus {
+  PENDING = "pending"
+  CONFIRMED = "confirmed"
+  CANCELLED = "cancelled"
+}
+
+class Payment <<dataclass>> {
+  +id: UUID
+  +reservation_id: UUID
+  +amount_irr: int
+  +provider_reference: str
+  +status: PaymentStatus = PENDING
+  +created_at: datetime
+  --
+  +ensure_matches(reservation: Reservation): None
+  +ensure_pending(): None
+  +succeed(): None
+}
+
+enum PaymentStatus {
+  PENDING = "pending"
+  SUCCEEDED = "succeeded"
+}
+
+class Transaction <<dataclass>> {
+  +id: UUID
+  +payment_id: UUID
+  +reference: str
+  +amount_irr: int
+  +created_at: datetime
+}
+
+User --> Role : role
+Slot ..> Resource : resource_id (UUID)
+Reservation ..> User : user_id (UUID)
+Reservation --> "0..1" Slot : slot / slot_id
+Reservation --> ReservationStatus : status
+Payment ..> Reservation : reservation_id (UUID)\nensure_matches()
+Payment --> PaymentStatus : status
+Transaction ..> Payment : payment_id (UUID)
+
+note right of Slot
+  Construction validates timezone-aware times,
+  ends_at > starts_at and positive price.
+  Times are normalized to UTC.
+end note
+
+note right of Reservation
+  place() snapshots slot.price_irr.
+  pending -> confirmed | cancelled
+  confirm() requires a pending, future booking.
+  A confirmed booking needs a refund workflow.
+end note
+
+legend left
+  All entities are dataclass(eq=False); IDs default to uuid4().
+  created_at defaults to utcnow(); monetary values use integer IRR.
+  Amount validation: 0 < amount <= 1,000,000,000,000.
+  __post_init__ validation and generated dataclass methods are omitted.
+  Dashed entity links identify UUID references, not stored object fields.
+  Reservation.slot is optional in memory; its SQL mapping is viewonly.
+  Database cardinalities and constraints are in database.puml.
+endlegend
+@enduml

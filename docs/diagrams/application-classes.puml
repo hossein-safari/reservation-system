@@ -1,0 +1,238 @@
+@startuml
+!pragma layout smetana
+title Reservation System — Application contracts and infrastructure
+top to bottom direction
+hide circle
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam defaultFontName SansSerif
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+skinparam classBackgroundColor #FAFAF9
+skinparam classBorderColor #57534E
+skinparam packageBackgroundColor white
+skinparam packageBorderColor #A8A29E
+skinparam ArrowColor #57534E
+skinparam noteBackgroundColor #FFFDF5
+skinparam noteBorderColor #A8A29E
+
+' Sources: application/{services,ports,service_scope.py}, infrastructure,
+'          bootstrap/container.py. Method parameters are omitted in this view.
+package "Application / services" as Services {
+  class AuthService {
+    -_users: UserRepository
+    -_hasher: PasswordHasher
+    -_tokens: TokenCodec
+    -_uow: UnitOfWork
+    --
+    +register(): User
+    +create_admin(): User
+    +login(): AuthenticatedSession
+    +current_user(): User
+  }
+  class ResourceService {
+    -_resources: ResourceRepository
+    -_uow: UnitOfWork
+    --
+    +list(): list[Resource]
+    +create(): Resource
+  }
+  class SlotService {
+    -_resources: ResourceRepository
+    -_slots: SlotRepository
+    -_uow: UnitOfWork
+    -_clock: Clock
+    --
+    +list(): list[Slot]
+    +create(): Slot
+  }
+  class ReservationService {
+    -_bookings: ReservationRepository
+    -_slots: SlotRepository
+    -_uow: UnitOfWork
+    -_clock: Clock
+    --
+    +list_owned(): list[Reservation]
+    +create(): Reservation
+    +cancel(): Reservation
+  }
+  class PaymentService {
+    -_bookings: ReservationRepository
+    -_payments: PaymentRepository
+    -_transactions: TransactionRepository
+    -_gateway: PaymentGateway
+    -_uow: UnitOfWork
+    -_clock: Clock
+    --
+    +create(): Payment
+    +verify(): Transaction
+  }
+  class TransactionService {
+    -_transactions: TransactionRepository
+    --
+    +list_owned(): list[Transaction]
+  }
+}
+
+package "Application / repository ports" as RepositoryPorts {
+  interface UserRepository <<Protocol>> {
+    +by_email(): User | None
+    +by_id(): User | None
+    +add(): None
+  }
+  interface ResourceRepository <<Protocol>> {
+    +list(): list[Resource]
+    +get_for_update(): Resource | None
+    +add(): None
+  }
+  interface SlotRepository <<Protocol>> {
+    +get(): Slot | None
+    +add(): None
+    +overlaps(): bool
+    +list(): list[Slot]
+  }
+  interface ReservationRepository <<Protocol>> {
+    +active_for_slot(): bool
+    +add(): None
+    +owned_for_update(): Reservation | None
+    +list_owned(): list[Reservation]
+  }
+  interface PaymentRepository <<Protocol>> {
+    +for_reservation(): Payment | None
+    +get(): Payment | None
+    +add(): None
+  }
+  interface TransactionRepository <<Protocol>> {
+    +for_payment(): Transaction | None
+    +add(): None
+    +list_owned(): list[Transaction]
+  }
+}
+
+package "Application / supporting ports" as SupportingPorts {
+  interface Clock <<Protocol>> {
+    +now(): datetime
+  }
+  interface UnitOfWork <<Protocol>> {
+    +transaction(): AbstractContextManager[None]
+  }
+  interface PasswordHasher <<Protocol>> {
+    +hash(): str
+    +verify(): bool
+  }
+  interface TokenCodec <<Protocol>> {
+    +issue(): str
+    +decode(): UUID
+  }
+  interface PaymentGateway <<Protocol>> {
+    +create(): str
+    +verify(): str
+  }
+}
+
+package "Infrastructure / SQL repositories" as SqlRepositories {
+  class SqlUserRepository {
+    +session: Session
+  }
+  class SqlResourceRepository {
+    +session: Session
+  }
+  class SqlSlotRepository {
+    +session: Session
+    +clock: Clock
+  }
+  class SqlReservationRepository {
+    +session: Session
+  }
+  class SqlPaymentRepository {
+    +session: Session
+  }
+  class SqlTransactionRepository {
+    +session: Session
+  }
+}
+
+package "Infrastructure / supporting adapters" as Adapters {
+  class SystemClock
+  class SqlUnitOfWork {
+    +session: Session
+  }
+  class ArgonPasswordHasher
+  class JwtTokenCodec {
+    +clock: Clock
+  }
+  class DevelopmentGateway
+}
+
+package "Application / entry-point contracts" as EntryPorts {
+  interface ServiceProvider <<Protocol>> {
+    +scope(): AbstractContextManager[ServiceScope]
+  }
+  interface ReadinessProbe <<Protocol>> {
+    +is_ready(): bool
+  }
+  class ServiceScope <<frozen dataclass>> {
+    +auth: AuthService
+    +resources: ResourceService
+    +slots: SlotService
+    +reservations: ReservationService
+    +payments: PaymentService
+    +transactions: TransactionService
+  }
+}
+
+package "Bootstrap" {
+  class ApplicationContainer {
+    +database: Database
+    +clock: SystemClock
+    +hasher: ArgonPasswordHasher
+    +tokens: JwtTokenCodec
+    +gateway: DevelopmentGateway
+    --
+    +scope(): AbstractContextManager[ServiceScope]
+    +close(): None
+  }
+}
+
+class Database <<infrastructure>> {
+  +engine: Engine
+  +sessions: sessionmaker[Session]
+  --
+  +session(): AbstractContextManager[Session]
+  +is_ready(): bool
+  +close(): None
+}
+
+Services ..> RepositoryPorts : constructor injection
+Services ..> SupportingPorts : constructor injection
+ServiceScope ..> Services : typed service fields
+ApplicationContainer ..> ServiceScope : builds per request
+ApplicationContainer --> Database : owns
+ApplicationContainer ..> SqlRepositories : creates with shared Session
+ApplicationContainer ..> Adapters : selects and injects
+
+SqlUserRepository ..|> UserRepository
+SqlResourceRepository ..|> ResourceRepository
+SqlSlotRepository ..|> SlotRepository
+SqlReservationRepository ..|> ReservationRepository
+SqlPaymentRepository ..|> PaymentRepository
+SqlTransactionRepository ..|> TransactionRepository
+SystemClock ..|> Clock
+SqlUnitOfWork ..|> UnitOfWork
+ArgonPasswordHasher ..|> PasswordHasher
+JwtTokenCodec ..|> TokenCodec
+DevelopmentGateway ..|> PaymentGateway
+ApplicationContainer ..|> ServiceProvider
+Database ..|> ReadinessProbe
+
+legend left
+  Interfaces represent Python typing.Protocol contracts.
+  Dashed triangle = structural implementation; explicit inheritance is not required.
+  Service fields show all injected contracts; package arrows group their dependencies.
+  Adapter method lists repeat the port contract and are omitted.
+  Method parameters and helper methods are omitted; return types are retained.
+  All SQL repositories and SqlUnitOfWork share one request-scoped Session.
+  Domain classes are detailed in domain-classes.puml.
+  FastAPI controllers are functions, so they are not represented as classes.
+endlegend
+@enduml
