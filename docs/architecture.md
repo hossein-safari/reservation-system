@@ -1,40 +1,89 @@
-# معماری
+# معماری بک‌اند
 
-یک monorepo با دو برنامه مستقل و یک PostgreSQL. هدف، پایه‌ای قابل اجرا با مرزهای روشن است؛ لایه‌های اضافی فقط در صورت نیاز اضافه می‌شوند.
+بک‌اند یک monolith لایه‌ای است. هر موجودیت، مدل persistence و Repository فایل جدا دارد؛ سرویس‌ها، کنترلرها و schemaها بر اساس حوزه تفکیک شده‌اند.
+
+## ساختار
+
+```text
+backend/app/
+├── domain/
+│   ├── entities/          user, resource, slot, reservation, payment, transaction
+│   ├── errors/            خطاهای دامنه بدون کد HTTP
+│   ├── time.py
+│   └── validation.py
+├── application/
+│   ├── commands/          ورودی معتبر مشترک بین HTTP و CLI
+│   ├── dto/               خروجی عملیات کاربردی
+│   ├── ports/             قرارداد جدا برای هر Repository، درگاه، زمان، توکن و UoW
+│   ├── services/          auth, resources, slots, reservations, payments, transactions
+│   └── service_scope.py   مجموعهٔ سرویس‌های هم‌عمر یک درخواست
+├── infrastructure/
+│   ├── persistence/
+│   │   ├── models/        یک Table و mapping برای هر موجودیت
+│   │   ├── repositories/  یک پیاده‌سازی SQL برای هر قرارداد
+│   │   ├── database.py    طول عمر Session و readiness
+│   │   ├── engine.py
+│   │   └── unit_of_work.py
+│   ├── security/          Argon2 و JWT در آداپتورهای جدا
+│   ├── payments/          درگاه آزمایشی
+│   └── clock.py
+├── api/
+│   ├── controllers/       کنترلر جدا برای هر حوزه
+│   ├── schemas/           schemaهای هر موجودیت و احراز هویت
+│   ├── dependencies/      دریافت قراردادها و سرویس‌ها از provider
+│   ├── error_handlers.py  تبدیل خطای دامنه به HTTP
+│   └── router.py
+├── bootstrap/container.py اتصال پیاده‌سازی‌های واقعی به قراردادها
+├── cli.py
+└── main.py
+```
+
+enum وضعیت کنار موجودیت مربوط است؛ schemaهای request/response مرتبط در ماژول همان حوزه قرار می‌گیرند. اجزای نامرتبط در یک فایل تجمیع نمی‌شوند و برای اجزای مرتبط abstraction بی‌کاربرد ساخته نمی‌شود.
 
 ## MVC و جهت وابستگی
 
+- **Model:** موجودیت‌های خالص و رفتارهای دامنه. مدل SQLAlchemy در infrastructure فقط مسئول نگاشت persistence است.
+- **Controller:** توابع FastAPI برای اعتبارسنجی ورودی، کنترل دسترسی و فراخوانی سرویس؛ بدون query یا آداپتور JWT/درگاه.
+- **View:** React و schemaهای پاسخ JSON.
+- **Application service:** هماهنگی عملیات، قراردادهای Repository و مرز تراکنش.
+- **Composition root:** تنها `bootstrap/container.py` پیاده‌سازی‌های واقعی را انتخاب و به سرویس‌ها تزریق می‌کند. HTTP و CLI از همین wiring استفاده می‌کنند.
+
 ```text
-React View -> hook/controller -> typed API client
-                                  |
-FastAPI controller -> application service -> repository/gateway protocols
-                                               ^
-                                 SQLAlchemy repository / development gateway
+API / CLI → Application services → Domain
+                  ↓                    ↑
+             Port contracts ← Infrastructure adapters
+
+bootstrap → انتخاب آداپتور و اتصال همهٔ اجزا
 ```
 
-- **Model:** موجودیت‌های SQLAlchemy در `infrastructure/models.py`، قواعد خالص دامنه در `domain/` و سرویس‌های کاربردی در `application/`. مدل ORM جزئیات persistence دارد و به کلاینت برگردانده نمی‌شود؛ schema خروجی مرز API است.
-- **View:** کامپوننت‌های React؛ نمایش، فرم و دسترس‌پذیری.
-- **Controller:** مسیرهای FastAPI اعتبارسنجی/احراز هویت را انجام می‌دهند و سرویس را صدا می‌زنند. hookهای React وضعیت تعاملات را کنترل می‌کنند. UI، SQL و قواعد تجاری را اجرا نمی‌کند.
-- **Composition root:** `api/dependencies.py` قراردادها را به آداپتورهای SQLAlchemy و درگاه توسعه متصل می‌کند. سرویس‌ها به FastAPI وابسته نیستند.
+domain فقط به کتابخانهٔ استاندارد Python وابسته است. application به HTTP و SQLAlchemy وابسته نیست. api به infrastructure وابسته نیست. تست‌های `tests/architecture/` این جهت‌ها را بررسی می‌کنند و در یک فرایند جدا نشان می‌دهند که دامنه بدون import کردن FastAPI، Pydantic یا SQLAlchemy اجرا می‌شود.
 
-## SOLID در کد
+## SOLID در پیاده‌سازی
 
-| اصل | کاربرد مشخص |
+| اصل | محل و شواهد |
 | --- | --- |
-| SRP | AuthService، CatalogService، ReservationService و PaymentService مسئولیت جدا دارند؛ کنترلرهای HTTP نازک هستند. |
-| OCP | درگاه جدید با پیاده‌سازی `PaymentGateway` و تغییر composition root اضافه می‌شود. |
-| LSP | قرارداد Repository در تست‌های سرویس با fake جایگزین می‌شود؛ رفتار سرویس به Session وابسته نیست. |
-| ISP | قراردادهای AuthRepository، CatalogRepository، BookingRepository و PaymentRepository جدا هستند. |
-| DIP | سرویس‌ها Protocol و UnitOfWork می‌گیرند؛ SQLAlchemy و درگاه توسعه آداپتورند. |
+| SRP | موجودیت، mapping، Repository، سرویس، schema و کنترلر هر حوزه جداست. صدور توکن، هش رمز و ساخت اتصال هر کدام مسئولیت مستقل دارند. |
+| OCP | افزودن درگاه یا آداپتور توکن با پیاده‌سازی Port و اتصال آن در bootstrap انجام می‌شود. سرویس پرداخت با fake gateway نیز اجرا می‌شود. |
+| LSP | تست قرارداد مشترک، lookup، مالکیت، دسترسی سانس و آزادسازی پس از لغو را برای آداپتور حافظه و SQL اجرا می‌کند. هم‌زمانی SQL جداگانه روی PostgreSQL تست می‌شود. |
+| ISP | User، Resource، Slot، Reservation، Payment و Transaction قراردادهای جدا دارند؛ سرویس خواندن تراکنش به درگاه یا UnitOfWork وابسته نیست. |
+| DIP | سرویس‌ها Protocolهای Repository، Clock، PasswordHasher، TokenCodec، PaymentGateway و UnitOfWork را دریافت می‌کنند. پیاده‌سازی‌های SQL/JWT فقط در infrastructure و bootstrap هستند. |
 
-## تراکنش و هم‌زمانی
+## قواعد دامنه و تراکنش
 
-هر command یک UnitOfWork دارد. Repository فقط query و flush می‌کند و commit نمی‌کند؛ commit در انتهای عملیات سرویس است. خطا باعث rollback می‌شود. قیمت از دیتابیس خوانده می‌شود.
+`Slot` بازه، timezone و مبلغ را اعتبارسنجی می‌کند. `Reservation.place` قیمت را از سانس ثبت می‌کند؛ `cancel`، `ensure_payable` و `confirm` انتقال وضعیت را کنترل می‌کنند. `Payment` تطابق مبلغ/رزرو و وضعیت تأیید را بررسی می‌کند. زمان جاری با `Clock` تزریق می‌شود.
 
-قفل ردیف فضا ساخت سانس را سریالی می‌کند؛ constraint منع هم‌پوشانی PostgreSQL نیز لایهٔ نهایی حفاظت است. unique index جزئی روی `reservations.slot_id` برای وضعیت‌های فعال از دو رزرو هم‌زمان جلوگیری می‌کند. پرداخت، قفل رزرو و Payment را می‌گیرد؛ لغو هم همان قفل رزرو را دارد. نتیجهٔ درگاه، Payment، Transaction و وضعیت رزرو در یک commit ذخیره می‌شوند. بن‌بست با ترتیب ثابت قفل رزرو سپس Payment کاهش می‌یابد.
+هر command داخل `with uow.transaction():` اجرا می‌شود. خروج موفق commit می‌کند؛ خطای دامنه، خطای flush و حتی شکست commit باعث rollback می‌شوند. این رفتار داخل آداپتور UnitOfWork است و به HTTP وابسته نیست. Repository فقط query و flush دارد. درخواست‌های خواندن نیز Session کوتاه‌عمر و ترجمهٔ خطای دیتابیس دارند.
 
-SQLite برای توسعه سریع و تست سبک است؛ ضمانت قفل ردیفی PostgreSQL را ندارد. تست‌های هم‌زمانی و منع هم‌پوشانی روی PostgreSQL اجرا می‌شوند. تست CI هر دو مسیر را پوشش می‌دهد.
+ساخت سانس، ردیف فضا را قفل می‌کند. پرداخت و لغو، ابتدا رزرو و سپس Payment را قفل می‌کنند. index جزئی رزرو فعال و exclusion constraint سانس‌ها در PostgreSQL حفاظت نهایی رقابت‌اند. SQLite مسیر توسعه است و ضمانت قفل ردیفی PostgreSQL را ندارد.
 
-## خواندن بیشتر
+درگاه فعلی محلی است. درگاه بانکی خارجی باید گردش intent/callback و reconciliation مستقل داشته باشد؛ تماس شبکه طولانی نباید زیر قفل دیتابیس قرار بگیرد.
 
-ساختار چندفایلی و dependency injection بر پایهٔ [راهنمای رسمی FastAPI](https://fastapi.tiangolo.com/tutorial/bigger-applications/) است؛ مدیریت commit/rollback با [تراکنش‌های SQLAlchemy](https://docs.sqlalchemy.org/en/20/orm/session_transaction.html) و محدودیت‌های هم‌زمانی با [constraintهای PostgreSQL](https://www.postgresql.org/docs/current/ddl-constraints.html) پیاده شده است.
+## نگاشت دامنه به دیتابیس
+
+موجودیت‌ها dataclass هستند و SQLAlchemy را import نمی‌کنند. mapping صریح هر موجودیت در `infrastructure/persistence/models/` تعریف و یک بار در bootstrap ثبت می‌شود. این روش بر اساس [نگاشت dataclass موجود در SQLAlchemy](https://docs.sqlalchemy.org/en/20/orm/dataclasses.html#mapping-pre-existing-dataclasses-using-imperative-mapping) است.
+
+مهاجرت اولیه تغییر نکرده است؛ `alembic check` برای SQLite و PostgreSQL تفاوت schema گزارش نمی‌کند. readiness، head فعلی migration را از Alembic می‌خواند و شناسهٔ ثابت در HTTP ندارد.
+
+## قرارداد عمومی و توسعه
+
+مسیرها، نام schemaها و داده‌های OpenAPI با قبل یکسان مانده‌اند؛ snapshot در `tests/architecture/openapi.json` ثبت شده است. تغییر عمدی قرارداد باید همراه بازبینی snapshot باشد. جزئیات بازآرایی در [ADR 0002](adr/0002-backend-boundaries.md) ثبت شده‌اند.

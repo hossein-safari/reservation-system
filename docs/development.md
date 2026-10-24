@@ -22,11 +22,13 @@ uvicorn app.main:app --reload
 ```bash
 ruff check .
 ruff format --check .
-mypy app
+mypy app tests/unit tests/fakes
 pytest
 ```
 
 تست‌ها با SQLite موقت و بدون داده واقعی اجرا می‌شوند. برای PostgreSQL یک **دیتابیس تست اختصاصی** بدهید؛ fixture جدول‌های آن را پاک/بازسازی می‌کند:
+
+تست‌های `tests/unit/` دامنه و سرویس را با آداپتورهای حافظه بررسی می‌کنند. `tests/integration/` قرارداد Repositoryها، API، CLI، rollback و هم‌زمانی را بررسی می‌کند. `tests/architecture/` جهت importها، استقلال دامنه و snapshot قرارداد عمومی را کنترل می‌کند. wiring جدید فقط در `app/bootstrap/container.py` اضافه شود.
 
 ```bash
 TEST_DATABASE_URL=postgresql+psycopg://test:test@localhost:5433/reservation_test pytest
