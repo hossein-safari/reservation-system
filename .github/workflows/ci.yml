@@ -34,7 +34,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements-dev.lock
       - run: pip install -r requirements-dev.lock
-      - run: ruff check . && ruff format --check . && mypy app
+      - run: ruff check . && ruff format --check . && mypy app tests/unit tests/fakes
       - run: pytest
       - run: pytest
         env:
