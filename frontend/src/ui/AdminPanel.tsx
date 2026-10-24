@@ -44,13 +44,11 @@ export function AdminPanel({
     <div className="admin-forms">
       <section className="form-section">
         <header className="form-section-heading">
-          <span>۰۱</span>
           <div>
             <h2>فضای جدید</h2>
-            <p>سالن، اتاق یا هر فضای قابل رزرو</p>
           </div>
         </header>
-        <form className="paper-form" onSubmit={resourceSubmit}>
+        <form className="form-stack" onSubmit={resourceSubmit}>
           <label>
             نام فضا
             <input name="name" required maxLength={120} />
@@ -66,13 +64,12 @@ export function AdminPanel({
       </section>
       <section className="form-section">
         <header className="form-section-heading">
-          <span>۰۲</span>
           <div>
             <h2>سانس جدید</h2>
             <p>تاریخ میلادی؛ ساعت به وقت تهران</p>
           </div>
         </header>
-        <form className="paper-form" onSubmit={slotSubmit}>
+        <form className="form-stack" onSubmit={slotSubmit}>
           <label>
             فضا
             <select

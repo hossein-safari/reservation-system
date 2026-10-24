@@ -18,14 +18,8 @@ export function SlotList({ slots, names, busy, onReserve }: SlotListProps) {
   if (!slots.length)
     return (
       <div className="empty-state">
-        <span className="empty-mark" aria-hidden="true">
-          —
-        </span>
         <h3>هنوز سانس آزادی ثبت نشده</h3>
         <p>مدیر می‌تواند از بخش مدیریت، فضا و سانس جدید اضافه کند.</p>
-        <span className="empty-end" aria-hidden="true">
-          پایان فهرست / فعلاً
-        </span>
       </div>
     );
   const days = new Map<string, Slot[]>();
@@ -46,23 +40,13 @@ export function SlotList({ slots, names, busy, onReserve }: SlotListProps) {
             aria-labelledby={`day-${group[0].id}`}
           >
             <header className="date-divider">
-              <span className="date-divider-number" aria-hidden="true">
-                {date.day}
-              </span>
-              <div>
-                <h2 id={`day-${group[0].id}`}>{date.weekday}</h2>
-                <p>{date.monthYear}</p>
-              </div>
+              <h2 id={`day-${group[0].id}`}>
+                {date.weekday}، {date.label}
+              </h2>
               <span className="date-divider-count">
                 {number(group.length)} سانس آزاد
               </span>
             </header>
-            <div className="schedule-column-head" aria-hidden="true">
-              <span>وقت</span>
-              <span>فضا / مدت</span>
-              <span>هزینهٔ سانس</span>
-              <span>انتخاب</span>
-            </div>
             {group.map((slot) => (
               <article className="time-row" key={slot.id}>
                 <div className="time-row-clock">
@@ -71,9 +55,7 @@ export function SlotList({ slots, names, busy, onReserve }: SlotListProps) {
                 </div>
                 <div className="time-row-place">
                   <h3>{names.get(slot.resource_id) ?? "فضای قابل رزرو"}</h3>
-                  <span>
-                    {duration(slot.starts_at, slot.ends_at)} · رزرو اختصاصی
-                  </span>
+                  <span>{duration(slot.starts_at, slot.ends_at)}</span>
                 </div>
                 <div className="time-row-price">
                   <span className="meta-label">هزینهٔ سانس</span>
@@ -116,9 +98,6 @@ export function ReservationList({
   if (!reservations.length)
     return (
       <div className="empty-state">
-        <span className="empty-mark" aria-hidden="true">
-          —
-        </span>
         <h3>رزروی ندارید</h3>
         <p>از سانس‌های آزاد، اولین قرار خود را انتخاب کنید.</p>
         <button className="button button--solid" onClick={onBrowse}>
@@ -129,10 +108,9 @@ export function ReservationList({
     );
   return (
     <div className="record-list">
-      {reservations.map((reservation, index) => (
+      {reservations.map((reservation) => (
         <article className="booking-record" key={reservation.id}>
           <div className="record-heading">
-            <span className="record-index">{number(index + 1, 2)}</span>
             <span className={`status status--${reservation.status}`}>
               {statuses[reservation.status]}
             </span>
@@ -185,21 +163,14 @@ export function TransactionList({
   if (!transactions.length)
     return (
       <div className="empty-state">
-        <span className="empty-mark" aria-hidden="true">
-          —
-        </span>
         <h3>تراکنشی ثبت نشده</h3>
         <p>نتیجه پرداخت‌های تأییدشده اینجا نمایش داده می‌شود.</p>
       </div>
     );
   return (
     <div className="record-list">
-      {transactions.map((transaction, index) => (
+      {transactions.map((transaction) => (
         <article className="receipt-record" key={transaction.id}>
-          <div className="receipt-number">
-            <span className="meta-label">ردیف</span>
-            <span>{number(index + 1, 2)}</span>
-          </div>
           <div className="receipt-detail">
             <span className="status status--confirmed">موفق</span>
             <h3>پرداخت تأییدشده</h3>

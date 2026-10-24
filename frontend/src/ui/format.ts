@@ -29,15 +29,13 @@ export function dayParts(value: string) {
       month: "2-digit",
       day: "2-digit",
     }).format(date),
-    day: new Intl.DateTimeFormat("fa-IR", { ...zone, day: "2-digit" }).format(
-      date,
-    ),
     weekday: new Intl.DateTimeFormat("fa-IR", {
       ...zone,
       weekday: "long",
     }).format(date),
-    monthYear: new Intl.DateTimeFormat("fa-IR", {
+    label: new Intl.DateTimeFormat("fa-IR", {
       ...zone,
+      day: "numeric",
       month: "long",
       year: "numeric",
     }).format(date),

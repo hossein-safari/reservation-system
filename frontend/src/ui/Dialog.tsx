@@ -17,7 +17,7 @@ export function Dialog({ titleId, busy, onClose, children }: Props) {
   return (
     <dialog
       ref={ref}
-      className="paper-dialog"
+      className="modal"
       aria-labelledby={titleId}
       onCancel={(event) => {
         if (busy) event.preventDefault();

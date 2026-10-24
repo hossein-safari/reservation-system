@@ -24,14 +24,13 @@ export function AuthDialog({ busy, error, onClose, onSubmit }: Props) {
   }
   return (
     <Dialog titleId="auth-title" busy={busy} onClose={onClose}>
-      <span className="dialog-kicker">قرار / حساب شخصی</span>
-      <h2 id="auth-title">{register ? "حساب جدید." : "ورود به دفتر."}</h2>
+      <h2 id="auth-title">{register ? "ساخت حساب" : "ورود"}</h2>
       <p className="dialog-description">
         {register
-          ? "حساب بسازید و وقت قرار بعدی‌تان را انتخاب کنید."
-          : "برای دیدن و مدیریت قرارها، وارد حساب خود شوید."}
+          ? "برای رزرو سانس، حساب بسازید."
+          : "با ایمیل و رمز عبور وارد شوید."}
       </p>
-      <form className="paper-form" onSubmit={submit}>
+      <form className="form-stack" onSubmit={submit}>
         {register && (
           <label>
             نام و نام خانوادگی

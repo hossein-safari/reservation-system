@@ -18,8 +18,7 @@ export function PaymentDialog({
 }: Props) {
   return (
     <Dialog titleId="payment-title" busy={busy} onClose={onClose}>
-      <span className="dialog-kicker">قرار / نهایی‌کردن رزرو</span>
-      <h2 id="payment-title">یک قدم تا ثبت نهایی.</h2>
+      <h2 id="payment-title">تأیید رزرو</h2>
       {reservation && (
         <div className="payment-summary">
           <span className="meta-label">مبلغ رزرو</span>
